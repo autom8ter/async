@@ -3,7 +3,7 @@
 # async
 
 ```go
-import "github.com/autom8ter/async/v1"
+import "github.com/autom8ter/async"
 ```
 
 Package async is a package for asynchronous programming in Go.
