@@ -1,4 +1,4 @@
-module github.com/autom8ter/async/v1
+module github.com/autom8ter/async
 
 go 1.20
 

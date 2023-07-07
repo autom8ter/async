@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/autom8ter/async/v1"
+	"github.com/autom8ter/async"
 	"github.com/stretchr/testify/assert"
 )
 
