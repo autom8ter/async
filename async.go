@@ -533,3 +533,58 @@ func (c *ChannelReceiver[T]) Close(ctx context.Context) {
 		close(c.ch)
 	})
 }
+
+// Input is a struct that contains a context and a value.
+type Input[T any] struct {
+	Ctx   context.Context
+	Value T
+}
+
+// Output is a struct that contains a context, a value, and an error.
+type Output[T any] struct {
+	Ctx   context.Context
+	Value T
+	Err   error
+}
+
+// IOFunc is a function that takes a context and an input and returns a result.
+type IOFunc[I any, O any] func(input Input[I]) *Output[O]
+
+// AsyncIO runs functions asynchronously.
+type AsyncIO[I any, O any] struct {
+	wg  sync.WaitGroup
+	ctx *MultiContext
+}
+
+// NewAsyncIO creates a new AsyncIO instance.
+func NewAsyncIO[I any, O any](ctx context.Context) *AsyncIO[I, O] {
+	return &AsyncIO[I, O]{
+		ctx: NewMultiContext(ctx),
+		wg:  sync.WaitGroup{},
+	}
+}
+
+// Async calls the given function in a new goroutine and returns a channel that will receive the result.
+func (a *AsyncIO[I, O]) Async(input Input[I], fn IOFunc[I, O]) chan *Output[O] {
+	ch := make(chan *Output[O], 1)
+	a.wg.Add(1)
+	go func() {
+		defer a.wg.Done()
+		ch <- fn(Input[I]{
+			Ctx:   a.ctx.WithContext(input.Ctx),
+			Value: input.Value,
+		})
+	}()
+	return ch
+}
+
+// Close cancels the context and waits for all goroutines to finish.
+func (a *AsyncIO[I, O]) Close() {
+	a.ctx.Cancel()
+	a.wg.Wait()
+}
+
+// Wait waits for all goroutines to finish.
+func (a *AsyncIO[I, O]) Wait() {
+	a.wg.Wait()
+}
