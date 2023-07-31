@@ -564,17 +564,57 @@ func NewAsyncIO[I any, O any](ctx context.Context) *AsyncIO[I, O] {
 	}
 }
 
-// Async calls the given function in a new goroutine and returns a channel that will receive the result.
-func (a *AsyncIO[I, O]) Async(input Input[I], fn IOFunc[I, O]) chan *Output[O] {
+// Process calls the given function in a new goroutine and returns a channel that will receive the result.
+func (a *AsyncIO[I, O]) Process(input Input[I], fn IOFunc[I, O]) chan *Output[O] {
+	if input.Ctx == nil {
+		input.Ctx = context.Background()
+	}
 	ch := make(chan *Output[O], 1)
 	a.wg.Add(1)
 	go func() {
 		defer a.wg.Done()
+		defer func() {
+			if r := recover(); r != nil {
+				ch <- &Output[O]{
+					Ctx:   a.ctx.WithContext(input.Ctx),
+					Value: *new(O),
+					Err:   fmt.Errorf("panic: %v", r),
+				}
+			}
+		}()
 		ch <- fn(Input[I]{
 			Ctx:   a.ctx.WithContext(input.Ctx),
 			Value: input.Value,
 		})
 	}()
+	return ch
+}
+
+// Stream calls the given function in a new goroutine for each value in the channel and returns a channel that will receive the results.
+func (a *AsyncIO[I, O]) Stream(inputCh chan Input[I], fn IOFunc[I, O]) chan *Output[O] {
+	ch := make(chan *Output[O], 1)
+	for input := range inputCh {
+		a.wg.Add(1)
+		go func(input Input[I]) {
+			defer a.wg.Done()
+			defer func() {
+				if r := recover(); r != nil {
+					ch <- &Output[O]{
+						Ctx:   a.ctx.WithContext(input.Ctx),
+						Value: *new(O),
+						Err:   fmt.Errorf("panic: %v", r),
+					}
+				}
+			}()
+			if input.Ctx == nil {
+				input.Ctx = context.Background()
+			}
+			ch <- fn(Input[I]{
+				Ctx:   a.ctx.WithContext(input.Ctx),
+				Value: input.Value,
+			})
+		}(input)
+	}
 	return ch
 }
 

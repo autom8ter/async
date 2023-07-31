@@ -83,3 +83,44 @@ func TestBorrower(t *testing.T) {
 	assert.EqualValues(t, "testing2", b.Value())
 	assert.NoError(t, b.Close())
 }
+
+func TestNewAsyncIO(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	t.Run("test process", func(t *testing.T) {
+		aio := async.NewAsyncIO[string, string](ctx)
+		for i := 0; i < 100; i++ {
+			ch := aio.Process(async.Input[string]{Ctx: ctx, Value: "testing"}, func(input async.Input[string]) *async.Output[string] {
+				return &async.Output[string]{Ctx: ctx, Value: input.Value}
+			})
+			output := <-ch
+			assert.EqualValues(t, "testing", output.Value)
+		}
+		ch := aio.Process(async.Input[string]{Ctx: ctx, Value: "testing"}, func(input async.Input[string]) *async.Output[string] {
+			return &async.Output[string]{Ctx: ctx, Value: input.Value}
+		})
+		output := <-ch
+		assert.EqualValues(t, "testing", output.Value)
+	})
+	t.Run("test process with error", func(t *testing.T) {
+		aio := async.NewAsyncIO[string, string](ctx)
+		for i := 0; i < 100; i++ {
+			ch := aio.Process(async.Input[string]{Ctx: ctx, Value: "testing"}, func(input async.Input[string]) *async.Output[string] {
+				return &async.Output[string]{Ctx: ctx, Value: input.Value, Err: fmt.Errorf("error")}
+			})
+			output := <-ch
+			assert.EqualValues(t, "testing", output.Value)
+			assert.Error(t, output.Err)
+		}
+	})
+	t.Run("test process with panic", func(t *testing.T) {
+		aio := async.NewAsyncIO[string, string](ctx)
+		for i := 0; i < 100; i++ {
+			ch := aio.Process(async.Input[string]{Ctx: ctx, Value: "testing"}, func(input async.Input[string]) *async.Output[string] {
+				panic("panic")
+			})
+			output := <-ch
+			assert.Error(t, output.Err)
+		}
+	})
+}
