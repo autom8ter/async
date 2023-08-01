@@ -17,10 +17,10 @@ func init() {
 	os.Setenv("ASYNC_DEBUG", "true")
 }
 
-func TestNewChannelGroup(t *testing.T) {
+func TestNewChannelBroadcast(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	g := async.NewChannelGroup[string](ctx)
+	g := async.NewChannelBroadcast[string](ctx)
 	wg := sync.WaitGroup{}
 	count := int64(0)
 	mu := sync.Mutex{}
@@ -84,42 +84,40 @@ func TestBorrower(t *testing.T) {
 	assert.NoError(t, b.Close())
 }
 
-func TestNewAsyncIO(t *testing.T) {
+func TestNewIOHandler(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	t.Run("test process", func(t *testing.T) {
-		aio := async.NewAsyncIO[string, string](ctx)
-		for i := 0; i < 100; i++ {
-			ch := aio.Process(async.Input[string]{Ctx: ctx, Value: "testing"}, func(input async.Input[string]) *async.Output[string] {
-				return &async.Output[string]{Ctx: ctx, Value: input.Value}
-			})
-			output := <-ch
-			assert.EqualValues(t, "testing", output.Value)
-		}
-		ch := aio.Process(async.Input[string]{Ctx: ctx, Value: "testing"}, func(input async.Input[string]) *async.Output[string] {
+		aio := async.NewIOHandler[string, string](ctx, func(input async.Input[string]) *async.Output[string] {
 			return &async.Output[string]{Ctx: ctx, Value: input.Value}
 		})
-		output := <-ch
-		assert.EqualValues(t, "testing", output.Value)
+		for i := 0; i < 100; i++ {
+			ch := aio.Process(async.Input[string]{Ctx: ctx, Value: "testing"})
+			output, ok := ch.Recv(ctx)
+			assert.True(t, ok)
+			assert.EqualValues(t, "testing", output.Value)
+		}
 	})
 	t.Run("test process with error", func(t *testing.T) {
-		aio := async.NewAsyncIO[string, string](ctx)
+		aio := async.NewIOHandler[string, string](ctx, func(input async.Input[string]) *async.Output[string] {
+			return &async.Output[string]{Ctx: ctx, Value: input.Value, Err: fmt.Errorf("error")}
+		})
 		for i := 0; i < 100; i++ {
-			ch := aio.Process(async.Input[string]{Ctx: ctx, Value: "testing"}, func(input async.Input[string]) *async.Output[string] {
-				return &async.Output[string]{Ctx: ctx, Value: input.Value, Err: fmt.Errorf("error")}
-			})
-			output := <-ch
+			ch := aio.Process(async.Input[string]{Ctx: ctx, Value: "testing"})
+			output, ok := ch.Recv(ctx)
+			assert.True(t, ok)
 			assert.EqualValues(t, "testing", output.Value)
 			assert.Error(t, output.Err)
 		}
 	})
 	t.Run("test process with panic", func(t *testing.T) {
-		aio := async.NewAsyncIO[string, string](ctx)
+		aio := async.NewIOHandler[string, string](ctx, func(input async.Input[string]) *async.Output[string] {
+			panic("panic")
+		})
 		for i := 0; i < 100; i++ {
-			ch := aio.Process(async.Input[string]{Ctx: ctx, Value: "testing"}, func(input async.Input[string]) *async.Output[string] {
-				panic("panic")
-			})
-			output := <-ch
+			ch := aio.Process(async.Input[string]{Ctx: ctx, Value: "testing"})
+			output, ok := ch.Recv(ctx)
+			assert.True(t, ok)
 			assert.Error(t, output.Err)
 		}
 	})

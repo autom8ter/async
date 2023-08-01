@@ -28,13 +28,13 @@ It provides a set of primitives for safely building concurrent applications that
   - [func \(c \*Channel\[T\]\) ProxyFrom\(ctx context.Context, ch \*Channel\[T\]\)](<#Channel[T].ProxyFrom>)
   - [func \(c \*Channel\[T\]\) Send\(ctx context.Context, value T\) bool](<#Channel[T].Send>)
   - [func \(c \*Channel\[T\]\) SendAsync\(ctx context.Context, value T\) chan bool](<#Channel[T].SendAsync>)
-- [type ChannelGroup](<#ChannelGroup>)
-  - [func NewChannelGroup\[T any\]\(ctx context.Context\) \*ChannelGroup\[T\]](<#NewChannelGroup>)
-  - [func \(b \*ChannelGroup\[T\]\) Channel\(ctx context.Context, opts ...ChannelOpt\[T\]\) \*ChannelReceiver\[T\]](<#ChannelGroup[T].Channel>)
-  - [func \(b \*ChannelGroup\[T\]\) Close\(\)](<#ChannelGroup[T].Close>)
-  - [func \(c \*ChannelGroup\[T\]\) Len\(\) int](<#ChannelGroup[T].Len>)
-  - [func \(cg \*ChannelGroup\[T\]\) Send\(ctx context.Context, val T\)](<#ChannelGroup[T].Send>)
-  - [func \(cg \*ChannelGroup\[T\]\) SendAsync\(ctx context.Context, val T\) chan bool](<#ChannelGroup[T].SendAsync>)
+- [type ChannelBroadcast](<#ChannelBroadcast>)
+  - [func NewChannelBroadcast\[T any\]\(ctx context.Context\) \*ChannelBroadcast\[T\]](<#NewChannelBroadcast>)
+  - [func \(b \*ChannelBroadcast\[T\]\) Channel\(ctx context.Context, opts ...ChannelOpt\[T\]\) \*ChannelReceiver\[T\]](<#ChannelBroadcast[T].Channel>)
+  - [func \(b \*ChannelBroadcast\[T\]\) Close\(\)](<#ChannelBroadcast[T].Close>)
+  - [func \(c \*ChannelBroadcast\[T\]\) Len\(\) int](<#ChannelBroadcast[T].Len>)
+  - [func \(cg \*ChannelBroadcast\[T\]\) Send\(ctx context.Context, val T\)](<#ChannelBroadcast[T].Send>)
+  - [func \(cg \*ChannelBroadcast\[T\]\) SendAsync\(ctx context.Context, val T\) chan bool](<#ChannelBroadcast[T].SendAsync>)
 - [type ChannelOpt](<#ChannelOpt>)
   - [func WithBufferSize\[T any\]\(bufferSize int\) ChannelOpt\[T\]](<#WithBufferSize>)
   - [func WithOnClose\[T any\]\(fn func\(ctx context.Context\)\) ChannelOpt\[T\]](<#WithOnClose>)
@@ -48,15 +48,32 @@ It provides a set of primitives for safely building concurrent applications that
   - [func \(c \*ChannelReceiver\[T\]\) Len\(\) int](<#ChannelReceiver[T].Len>)
   - [func \(c \*ChannelReceiver\[T\]\) ProxyTo\(ctx context.Context, ch \*Channel\[T\]\)](<#ChannelReceiver[T].ProxyTo>)
   - [func \(c \*ChannelReceiver\[T\]\) Recv\(ctx context.Context\) \(T, bool\)](<#ChannelReceiver[T].Recv>)
+- [type IOFunc](<#IOFunc>)
+  - [func \(fn IOFunc\[I, O\]\) WrapInput\(wrappers ...InputWrapper\[I\]\) IOFunc\[I, O\]](<#IOFunc[I, O].WrapInput>)
+  - [func \(fn IOFunc\[I, O\]\) WrapOutput\(wrappers ...OutputWrapper\[O\]\) IOFunc\[I, O\]](<#IOFunc[I, O].WrapOutput>)
+- [type IOHandler](<#IOHandler>)
+  - [func NewIOHandler\[I any, O any\]\(ctx context.Context, fn IOFunc\[I, O\]\) \*IOHandler\[I, O\]](<#NewIOHandler>)
+  - [func \(a \*IOHandler\[I, O\]\) Close\(\)](<#IOHandler[I, O].Close>)
+  - [func \(a \*IOHandler\[I, O\]\) Process\(input Input\[I\], opts ...ChannelOpt\[\*Output\[O\]\]\) \*Channel\[\*Output\[O\]\]](<#IOHandler[I, O].Process>)
+  - [func \(a \*IOHandler\[I, O\]\) ProcessStream\(streamCtx context.Context, inputs chan Input\[I\], opts ...ChannelOpt\[\*Output\[O\]\]\) \*Channel\[\*Output\[O\]\]](<#IOHandler[I, O].ProcessStream>)
+  - [func \(a \*IOHandler\[I, O\]\) ProcessSync\(input Input\[I\]\) \*Output\[O\]](<#IOHandler[I, O].ProcessSync>)
+  - [func \(a \*IOHandler\[I, O\]\) Wait\(\)](<#IOHandler[I, O].Wait>)
+  - [func \(a \*IOHandler\[I, O\]\) WithInputWrappers\(wrappers ...InputWrapper\[I\]\) \*IOHandler\[I, O\]](<#IOHandler[I, O].WithInputWrappers>)
+  - [func \(a \*IOHandler\[I, O\]\) WithOutputWrappers\(wrappers ...OutputWrapper\[O\]\) \*IOHandler\[I, O\]](<#IOHandler[I, O].WithOutputWrappers>)
+- [type IOMiddleware](<#IOMiddleware>)
+- [type Input](<#Input>)
+- [type InputWrapper](<#InputWrapper>)
 - [type MultiContext](<#MultiContext>)
   - [func NewMultiContext\(ctx context.Context\) \*MultiContext](<#NewMultiContext>)
   - [func \(m \*MultiContext\) Cancel\(\)](<#MultiContext.Cancel>)
   - [func \(m \*MultiContext\) WithCloser\(fn func\(\)\)](<#MultiContext.WithCloser>)
   - [func \(m \*MultiContext\) WithContext\(ctx context.Context\) context.Context](<#MultiContext.WithContext>)
+- [type Output](<#Output>)
+- [type OutputWrapper](<#OutputWrapper>)
 
 
 <a name="Borrower"></a>
-## type [Borrower](<https://github.com/autom8ter/async/blob/main/async.go#L151-L157>)
+## type [Borrower](<https://github.com/autom8ter/async/blob/main/borrower.go#L11-L17>)
 
 Borrower is a thread\-safe object that can be borrowed and returned.
 
@@ -67,7 +84,7 @@ type Borrower[T any] struct {
 ```
 
 <a name="NewBorrower"></a>
-### func [NewBorrower](<https://github.com/autom8ter/async/blob/main/async.go#L160>)
+### func [NewBorrower](<https://github.com/autom8ter/async/blob/main/borrower.go#L20>)
 
 ```go
 func NewBorrower[T any](value T) *Borrower[T]
@@ -76,7 +93,7 @@ func NewBorrower[T any](value T) *Borrower[T]
 NewBorrower returns a new Borrower with the provided value.
 
 <a name="Borrower[T].Borrow"></a>
-### func \(\*Borrower\[T\]\) [Borrow](<https://github.com/autom8ter/async/blob/main/async.go#L173>)
+### func \(\*Borrower\[T\]\) [Borrow](<https://github.com/autom8ter/async/blob/main/borrower.go#L33>)
 
 ```go
 func (b *Borrower[T]) Borrow() *T
@@ -85,7 +102,7 @@ func (b *Borrower[T]) Borrow() *T
 Borrow returns the value of the Borrower. If the value is not available, it will block until it is.
 
 <a name="Borrower[T].BorrowContext"></a>
-### func \(\*Borrower\[T\]\) [BorrowContext](<https://github.com/autom8ter/async/blob/main/async.go#L191>)
+### func \(\*Borrower\[T\]\) [BorrowContext](<https://github.com/autom8ter/async/blob/main/borrower.go#L51>)
 
 ```go
 func (b *Borrower[T]) BorrowContext(ctx context.Context) (*T, error)
@@ -94,7 +111,7 @@ func (b *Borrower[T]) BorrowContext(ctx context.Context) (*T, error)
 BorrowContext returns the value of the Borrower. If the value is not available, it will block until it is or the context is canceled.
 
 <a name="Borrower[T].Close"></a>
-### func \(\*Borrower\[T\]\) [Close](<https://github.com/autom8ter/async/blob/main/async.go#L246>)
+### func \(\*Borrower\[T\]\) [Close](<https://github.com/autom8ter/async/blob/main/borrower.go#L106>)
 
 ```go
 func (b *Borrower[T]) Close() error
@@ -103,7 +120,7 @@ func (b *Borrower[T]) Close() error
 Close closes the Borrower and prevents it from being borrowed again. If the Borrower is still borrowed, it will return an error. Close is idempotent.
 
 <a name="Borrower[T].Do"></a>
-### func \(\*Borrower\[T\]\) [Do](<https://github.com/autom8ter/async/blob/main/async.go#L228>)
+### func \(\*Borrower\[T\]\) [Do](<https://github.com/autom8ter/async/blob/main/borrower.go#L88>)
 
 ```go
 func (b *Borrower[T]) Do(fn func(*T)) error
@@ -112,7 +129,7 @@ func (b *Borrower[T]) Do(fn func(*T)) error
 Do borrows the value, calls the provided function, and returns the value.
 
 <a name="Borrower[T].Return"></a>
-### func \(\*Borrower\[T\]\) [Return](<https://github.com/autom8ter/async/blob/main/async.go#L208>)
+### func \(\*Borrower\[T\]\) [Return](<https://github.com/autom8ter/async/blob/main/borrower.go#L68>)
 
 ```go
 func (b *Borrower[T]) Return(obj *T) error
@@ -121,7 +138,7 @@ func (b *Borrower[T]) Return(obj *T) error
 Return returns the value to the Borrower so it can be borrowed again. If the value is not a pointer to the value that was borrowed, it will return an error. If the value has already been returned, it will return an error.
 
 <a name="Borrower[T].Swap"></a>
-### func \(\*Borrower\[T\]\) [Swap](<https://github.com/autom8ter/async/blob/main/async.go#L235>)
+### func \(\*Borrower\[T\]\) [Swap](<https://github.com/autom8ter/async/blob/main/borrower.go#L95>)
 
 ```go
 func (b *Borrower[T]) Swap(value T) error
@@ -130,7 +147,7 @@ func (b *Borrower[T]) Swap(value T) error
 Swap borrows the value, swaps it with the provided value, and returns the value to the Borrower.
 
 <a name="Borrower[T].TryBorrow"></a>
-### func \(\*Borrower\[T\]\) [TryBorrow](<https://github.com/autom8ter/async/blob/main/async.go#L178>)
+### func \(\*Borrower\[T\]\) [TryBorrow](<https://github.com/autom8ter/async/blob/main/borrower.go#L38>)
 
 ```go
 func (b *Borrower[T]) TryBorrow() (*T, bool)
@@ -139,7 +156,7 @@ func (b *Borrower[T]) TryBorrow() (*T, bool)
 TryBorrow returns the value of the Borrower if it is available. If the value is not available, it will return false.
 
 <a name="Borrower[T].Value"></a>
-### func \(\*Borrower\[T\]\) [Value](<https://github.com/autom8ter/async/blob/main/async.go#L223>)
+### func \(\*Borrower\[T\]\) [Value](<https://github.com/autom8ter/async/blob/main/borrower.go#L83>)
 
 ```go
 func (b *Borrower[T]) Value() T
@@ -148,7 +165,7 @@ func (b *Borrower[T]) Value() T
 Value returns the value of the Borrower. This is a non\-blocking operation since the value is not borrowed\(non\-pointer\).
 
 <a name="Channel"></a>
-## type [Channel](<https://github.com/autom8ter/async/blob/main/async.go#L286-L289>)
+## type [Channel](<https://github.com/autom8ter/async/blob/main/channel.go#L23-L26>)
 
 Channel is a safer version of a channel that can be closed and has a context to prevent sending or receiving when the context is canceled.
 
@@ -159,7 +176,7 @@ type Channel[T any] struct {
 ```
 
 <a name="NewChannel"></a>
-### func [NewChannel](<https://github.com/autom8ter/async/blob/main/async.go#L339>)
+### func [NewChannel](<https://github.com/autom8ter/async/blob/main/channel.go#L76>)
 
 ```go
 func NewChannel[T any](ctx context.Context, opts ...ChannelOpt[T]) *Channel[T]
@@ -168,7 +185,7 @@ func NewChannel[T any](ctx context.Context, opts ...ChannelOpt[T]) *Channel[T]
 NewChannel returns a new Channel with the provided options. The channel will be closed when the context is cancelled.
 
 <a name="Channel[T].Context"></a>
-### func \(\*Channel\[T\]\) [Context](<https://github.com/autom8ter/async/blob/main/async.go#L370>)
+### func \(\*Channel\[T\]\) [Context](<https://github.com/autom8ter/async/blob/main/channel.go#L107>)
 
 ```go
 func (c *Channel[T]) Context() *MultiContext
@@ -177,7 +194,7 @@ func (c *Channel[T]) Context() *MultiContext
 Context returns the context of the channel.
 
 <a name="Channel[T].ProxyFrom"></a>
-### func \(\*Channel\[T\]\) [ProxyFrom](<https://github.com/autom8ter/async/blob/main/async.go#L447>)
+### func \(\*Channel\[T\]\) [ProxyFrom](<https://github.com/autom8ter/async/blob/main/channel.go#L184>)
 
 ```go
 func (c *Channel[T]) ProxyFrom(ctx context.Context, ch *Channel[T])
@@ -186,7 +203,7 @@ func (c *Channel[T]) ProxyFrom(ctx context.Context, ch *Channel[T])
 ProxyFrom proxies values from the given channel to this channel. This is a non\-blocking call.
 
 <a name="Channel[T].Send"></a>
-### func \(\*Channel\[T\]\) [Send](<https://github.com/autom8ter/async/blob/main/async.go#L404>)
+### func \(\*Channel\[T\]\) [Send](<https://github.com/autom8ter/async/blob/main/channel.go#L141>)
 
 ```go
 func (c *Channel[T]) Send(ctx context.Context, value T) bool
@@ -195,7 +212,7 @@ func (c *Channel[T]) Send(ctx context.Context, value T) bool
 Send sends a value to the channel. If the channel is closed or the context is cancelled, it will return false. If the value is sent, it will return true. This is a blocking call.
 
 <a name="Channel[T].SendAsync"></a>
-### func \(\*Channel\[T\]\) [SendAsync](<https://github.com/autom8ter/async/blob/main/async.go#L378>)
+### func \(\*Channel\[T\]\) [SendAsync](<https://github.com/autom8ter/async/blob/main/channel.go#L115>)
 
 ```go
 func (c *Channel[T]) SendAsync(ctx context.Context, value T) chan bool
@@ -203,73 +220,73 @@ func (c *Channel[T]) SendAsync(ctx context.Context, value T) chan bool
 
 SendAsync sends a value to the channel in a goroutine. If the channel is closed, it will return false to the channel returned by this function. If the context is canceled, it will return false to the channel returned by this function. If the value is sent, it will return true to the channel returned by this function. This is a non\-blocking call.
 
-<a name="ChannelGroup"></a>
-## type [ChannelGroup](<https://github.com/autom8ter/async/blob/main/async.go#L19-L23>)
+<a name="ChannelBroadcast"></a>
+## type [ChannelBroadcast](<https://github.com/autom8ter/async/blob/main/channel_group.go#L12-L16>)
 
-ChannelGroup is a thread\-safe group of channels. It is useful for broadcasting a value to multiple channels at once.
+ChannelBroadcast is a thread\-safe group of channels. It is useful for broadcasting a value to multiple channels at once.
 
 ```go
-type ChannelGroup[T any] struct {
+type ChannelBroadcast[T any] struct {
     // contains filtered or unexported fields
 }
 ```
 
-<a name="NewChannelGroup"></a>
-### func [NewChannelGroup](<https://github.com/autom8ter/async/blob/main/async.go#L27>)
+<a name="NewChannelBroadcast"></a>
+### func [NewChannelBroadcast](<https://github.com/autom8ter/async/blob/main/channel_group.go#L20>)
 
 ```go
-func NewChannelGroup[T any](ctx context.Context) *ChannelGroup[T]
+func NewChannelBroadcast[T any](ctx context.Context) *ChannelBroadcast[T]
 ```
 
-NewChannelGroup returns a new ChannelGroup. The context is used to cancel all subscribers when the context is canceled. A channel group is useful for broadcasting a value to multiple subscribers.
+NewChannelBroadcast returns a new ChannelBroadcast. The context is used to cancel all subscribers when the context is canceled. A channel group is useful for broadcasting a value to multiple subscribers.
 
-<a name="ChannelGroup[T].Channel"></a>
-### func \(\*ChannelGroup\[T\]\) [Channel](<https://github.com/autom8ter/async/blob/main/async.go#L66>)
+<a name="ChannelBroadcast[T].Channel"></a>
+### func \(\*ChannelBroadcast\[T\]\) [Channel](<https://github.com/autom8ter/async/blob/main/channel_group.go#L59>)
 
 ```go
-func (b *ChannelGroup[T]) Channel(ctx context.Context, opts ...ChannelOpt[T]) *ChannelReceiver[T]
+func (b *ChannelBroadcast[T]) Channel(ctx context.Context, opts ...ChannelOpt[T]) *ChannelReceiver[T]
 ```
 
 Channel returns a channel that will receive values from broadcasted values. The channel will be closed when the context is canceled. This is a non\-blocking operation.
 
-<a name="ChannelGroup[T].Close"></a>
-### func \(\*ChannelGroup\[T\]\) [Close](<https://github.com/autom8ter/async/blob/main/async.go#L90>)
+<a name="ChannelBroadcast[T].Close"></a>
+### func \(\*ChannelBroadcast\[T\]\) [Close](<https://github.com/autom8ter/async/blob/main/channel_group.go#L83>)
 
 ```go
-func (b *ChannelGroup[T]) Close()
+func (b *ChannelBroadcast[T]) Close()
 ```
 
 Close blocks until all subscribers have been removed and then closes the broadcast.
 
-<a name="ChannelGroup[T].Len"></a>
-### func \(\*ChannelGroup\[T\]\) [Len](<https://github.com/autom8ter/async/blob/main/async.go#L80>)
+<a name="ChannelBroadcast[T].Len"></a>
+### func \(\*ChannelBroadcast\[T\]\) [Len](<https://github.com/autom8ter/async/blob/main/channel_group.go#L73>)
 
 ```go
-func (c *ChannelGroup[T]) Len() int
+func (c *ChannelBroadcast[T]) Len() int
 ```
 
 Len returns the number of subscribers.
 
-<a name="ChannelGroup[T].Send"></a>
-### func \(\*ChannelGroup\[T\]\) [Send](<https://github.com/autom8ter/async/blob/main/async.go#L55>)
+<a name="ChannelBroadcast[T].Send"></a>
+### func \(\*ChannelBroadcast\[T\]\) [Send](<https://github.com/autom8ter/async/blob/main/channel_group.go#L48>)
 
 ```go
-func (cg *ChannelGroup[T]) Send(ctx context.Context, val T)
+func (cg *ChannelBroadcast[T]) Send(ctx context.Context, val T)
 ```
 
 SendAsync sends a value to all channels in the group asynchronously. This is a non\-blocking operation.
 
-<a name="ChannelGroup[T].SendAsync"></a>
-### func \(\*ChannelGroup\[T\]\) [SendAsync](<https://github.com/autom8ter/async/blob/main/async.go#L37>)
+<a name="ChannelBroadcast[T].SendAsync"></a>
+### func \(\*ChannelBroadcast\[T\]\) [SendAsync](<https://github.com/autom8ter/async/blob/main/channel_group.go#L30>)
 
 ```go
-func (cg *ChannelGroup[T]) SendAsync(ctx context.Context, val T) chan bool
+func (cg *ChannelBroadcast[T]) SendAsync(ctx context.Context, val T) chan bool
 ```
 
 SendAsync sends a value to all channels in the group asynchronously. This is a non\-blocking operation.
 
 <a name="ChannelOpt"></a>
-## type [ChannelOpt](<https://github.com/autom8ter/async/blob/main/async.go#L300>)
+## type [ChannelOpt](<https://github.com/autom8ter/async/blob/main/channel.go#L37>)
 
 ChannelOpt is an option for creating a new Channel.
 
@@ -278,7 +295,7 @@ type ChannelOpt[T any] func(*channelOpts[T])
 ```
 
 <a name="WithBufferSize"></a>
-### func [WithBufferSize](<https://github.com/autom8ter/async/blob/main/async.go#L303>)
+### func [WithBufferSize](<https://github.com/autom8ter/async/blob/main/channel.go#L40>)
 
 ```go
 func WithBufferSize[T any](bufferSize int) ChannelOpt[T]
@@ -287,7 +304,7 @@ func WithBufferSize[T any](bufferSize int) ChannelOpt[T]
 WithBufferSize sets the buffer size of the channel.
 
 <a name="WithOnClose"></a>
-### func [WithOnClose](<https://github.com/autom8ter/async/blob/main/async.go#L331>)
+### func [WithOnClose](<https://github.com/autom8ter/async/blob/main/channel.go#L68>)
 
 ```go
 func WithOnClose[T any](fn func(ctx context.Context)) ChannelOpt[T]
@@ -296,7 +313,7 @@ func WithOnClose[T any](fn func(ctx context.Context)) ChannelOpt[T]
 WithOnClose adds a function to be called before the channel is closed.
 
 <a name="WithOnRcv"></a>
-### func [WithOnRcv](<https://github.com/autom8ter/async/blob/main/async.go#L317>)
+### func [WithOnRcv](<https://github.com/autom8ter/async/blob/main/channel.go#L54>)
 
 ```go
 func WithOnRcv[T any](fn func(context.Context, T) T) ChannelOpt[T]
@@ -305,7 +322,7 @@ func WithOnRcv[T any](fn func(context.Context, T) T) ChannelOpt[T]
 WithOnRcv adds a function to be called before receiving a value.
 
 <a name="WithOnSend"></a>
-### func [WithOnSend](<https://github.com/autom8ter/async/blob/main/async.go#L310>)
+### func [WithOnSend](<https://github.com/autom8ter/async/blob/main/channel.go#L47>)
 
 ```go
 func WithOnSend[T any](fn func(context.Context, T) T) ChannelOpt[T]
@@ -314,7 +331,7 @@ func WithOnSend[T any](fn func(context.Context, T) T) ChannelOpt[T]
 WithOnSend adds a function to be called before sending a value.
 
 <a name="WithWhere"></a>
-### func [WithWhere](<https://github.com/autom8ter/async/blob/main/async.go#L324>)
+### func [WithWhere](<https://github.com/autom8ter/async/blob/main/channel.go#L61>)
 
 ```go
 func WithWhere[T any](fn func(context.Context, T) bool) ChannelOpt[T]
@@ -323,7 +340,7 @@ func WithWhere[T any](fn func(context.Context, T) bool) ChannelOpt[T]
 WithWhere adds a function to be called before sending a value to determine if the value should be sent.
 
 <a name="ChannelReceiver"></a>
-## type [ChannelReceiver](<https://github.com/autom8ter/async/blob/main/async.go#L274-L283>)
+## type [ChannelReceiver](<https://github.com/autom8ter/async/blob/main/channel.go#L11-L20>)
 
 ChannelReceiver is a receiver for a channel.
 
@@ -334,7 +351,7 @@ type ChannelReceiver[T any] struct {
 ```
 
 <a name="ChannelReceiver[T].Close"></a>
-### func \(\*ChannelReceiver\[T\]\) [Close](<https://github.com/autom8ter/async/blob/main/async.go#L515>)
+### func \(\*ChannelReceiver\[T\]\) [Close](<https://github.com/autom8ter/async/blob/main/channel.go#L252>)
 
 ```go
 func (c *ChannelReceiver[T]) Close(ctx context.Context)
@@ -343,7 +360,7 @@ func (c *ChannelReceiver[T]) Close(ctx context.Context)
 Close closes the channel. It will call the OnClose functions and wait for all goroutines to finish. If the context is cancelled, waiting for goroutines to finish will be cancelled.
 
 <a name="ChannelReceiver[T].ForEach"></a>
-### func \(\*ChannelReceiver\[T\]\) [ForEach](<https://github.com/autom8ter/async/blob/main/async.go#L483>)
+### func \(\*ChannelReceiver\[T\]\) [ForEach](<https://github.com/autom8ter/async/blob/main/channel.go#L220>)
 
 ```go
 func (c *ChannelReceiver[T]) ForEach(ctx context.Context, fn func(context.Context, T) bool)
@@ -352,7 +369,7 @@ func (c *ChannelReceiver[T]) ForEach(ctx context.Context, fn func(context.Contex
 ForEach calls the given function for each value in the channel until the channel is closed, the context is cancelled, or the function returns false.
 
 <a name="ChannelReceiver[T].ForEachAsync"></a>
-### func \(\*ChannelReceiver\[T\]\) [ForEachAsync](<https://github.com/autom8ter/async/blob/main/async.go#L497>)
+### func \(\*ChannelReceiver\[T\]\) [ForEachAsync](<https://github.com/autom8ter/async/blob/main/channel.go#L234>)
 
 ```go
 func (c *ChannelReceiver[T]) ForEachAsync(ctx context.Context, fn func(context.Context, T) bool)
@@ -361,7 +378,7 @@ func (c *ChannelReceiver[T]) ForEachAsync(ctx context.Context, fn func(context.C
 ForEachAsync calls the given function for each value in the channel until the channel is closed, the context is cancelled, or the function returns false. It will call the function in a new goroutine for each value.
 
 <a name="ChannelReceiver[T].Len"></a>
-### func \(\*ChannelReceiver\[T\]\) [Len](<https://github.com/autom8ter/async/blob/main/async.go#L478>)
+### func \(\*ChannelReceiver\[T\]\) [Len](<https://github.com/autom8ter/async/blob/main/channel.go#L215>)
 
 ```go
 func (c *ChannelReceiver[T]) Len() int
@@ -370,7 +387,7 @@ func (c *ChannelReceiver[T]) Len() int
 Len returns the number of values in the channel.
 
 <a name="ChannelReceiver[T].ProxyTo"></a>
-### func \(\*ChannelReceiver\[T\]\) [ProxyTo](<https://github.com/autom8ter/async/blob/main/async.go#L463>)
+### func \(\*ChannelReceiver\[T\]\) [ProxyTo](<https://github.com/autom8ter/async/blob/main/channel.go#L200>)
 
 ```go
 func (c *ChannelReceiver[T]) ProxyTo(ctx context.Context, ch *Channel[T])
@@ -379,7 +396,7 @@ func (c *ChannelReceiver[T]) ProxyTo(ctx context.Context, ch *Channel[T])
 ProxyTo proxies values from this channel to the given channel. This is a non\-blocking call.
 
 <a name="ChannelReceiver[T].Recv"></a>
-### func \(\*ChannelReceiver\[T\]\) [Recv](<https://github.com/autom8ter/async/blob/main/async.go#L421>)
+### func \(\*ChannelReceiver\[T\]\) [Recv](<https://github.com/autom8ter/async/blob/main/channel.go#L158>)
 
 ```go
 func (c *ChannelReceiver[T]) Recv(ctx context.Context) (T, bool)
@@ -387,8 +404,152 @@ func (c *ChannelReceiver[T]) Recv(ctx context.Context) (T, bool)
 
 Recv returns the next value from the channel. If the channel is closed, it will return false.
 
+<a name="IOFunc"></a>
+## type [IOFunc](<https://github.com/autom8ter/async/blob/main/async.go#L29>)
+
+IOFunc is a function that takes a context and an input and returns a result.
+
+```go
+type IOFunc[I any, O any] func(input Input[I]) *Output[O]
+```
+
+<a name="IOFunc[I, O].WrapInput"></a>
+### func \(IOFunc\[I, O\]\) [WrapInput](<https://github.com/autom8ter/async/blob/main/async.go#L35>)
+
+```go
+func (fn IOFunc[I, O]) WrapInput(wrappers ...InputWrapper[I]) IOFunc[I, O]
+```
+
+WrapInput wraps the input of the IO function with the given input wrappers before calling it.
+
+<a name="IOFunc[I, O].WrapOutput"></a>
+### func \(IOFunc\[I, O\]\) [WrapOutput](<https://github.com/autom8ter/async/blob/main/async.go#L48>)
+
+```go
+func (fn IOFunc[I, O]) WrapOutput(wrappers ...OutputWrapper[O]) IOFunc[I, O]
+```
+
+WrapOutput wraps the output of the IO function with the given output wrappers before returning it.
+
+<a name="IOHandler"></a>
+## type [IOHandler](<https://github.com/autom8ter/async/blob/main/async.go#L65-L69>)
+
+IOHandler runs functions asynchronously.
+
+```go
+type IOHandler[I any, O any] struct {
+    // contains filtered or unexported fields
+}
+```
+
+<a name="NewIOHandler"></a>
+### func [NewIOHandler](<https://github.com/autom8ter/async/blob/main/async.go#L72>)
+
+```go
+func NewIOHandler[I any, O any](ctx context.Context, fn IOFunc[I, O]) *IOHandler[I, O]
+```
+
+NewIOHandler creates a new IOHandler instance.
+
+<a name="IOHandler[I, O].Close"></a>
+### func \(\*IOHandler\[I, O\]\) [Close](<https://github.com/autom8ter/async/blob/main/async.go#L181>)
+
+```go
+func (a *IOHandler[I, O]) Close()
+```
+
+Close cancels the root context and waits for all goroutines to finish.
+
+<a name="IOHandler[I, O].Process"></a>
+### func \(\*IOHandler\[I, O\]\) [Process](<https://github.com/autom8ter/async/blob/main/async.go#L93>)
+
+```go
+func (a *IOHandler[I, O]) Process(input Input[I], opts ...ChannelOpt[*Output[O]]) *Channel[*Output[O]]
+```
+
+Process calls the given function in a new goroutine and returns a channel that will receive the result of the function.
+
+<a name="IOHandler[I, O].ProcessStream"></a>
+### func \(\*IOHandler\[I, O\]\) [ProcessStream](<https://github.com/autom8ter/async/blob/main/async.go#L132>)
+
+```go
+func (a *IOHandler[I, O]) ProcessStream(streamCtx context.Context, inputs chan Input[I], opts ...ChannelOpt[*Output[O]]) *Channel[*Output[O]]
+```
+
+ProcessStream calls the given function for each value in the channel until the channel is closed, or the context is cancelled.
+
+<a name="IOHandler[I, O].ProcessSync"></a>
+### func \(\*IOHandler\[I, O\]\) [ProcessSync](<https://github.com/autom8ter/async/blob/main/async.go#L121>)
+
+```go
+func (a *IOHandler[I, O]) ProcessSync(input Input[I]) *Output[O]
+```
+
+ProcessSync calls the given function and returns the result.
+
+<a name="IOHandler[I, O].Wait"></a>
+### func \(\*IOHandler\[I, O\]\) [Wait](<https://github.com/autom8ter/async/blob/main/async.go#L187>)
+
+```go
+func (a *IOHandler[I, O]) Wait()
+```
+
+Wait waits for all goroutines to finish.
+
+<a name="IOHandler[I, O].WithInputWrappers"></a>
+### func \(\*IOHandler\[I, O\]\) [WithInputWrappers](<https://github.com/autom8ter/async/blob/main/async.go#L81>)
+
+```go
+func (a *IOHandler[I, O]) WithInputWrappers(wrappers ...InputWrapper[I]) *IOHandler[I, O]
+```
+
+WithInputWrappers adds the given input wrappers to the IOHandler instance. This method is not thread\-safe.
+
+<a name="IOHandler[I, O].WithOutputWrappers"></a>
+### func \(\*IOHandler\[I, O\]\) [WithOutputWrappers](<https://github.com/autom8ter/async/blob/main/async.go#L87>)
+
+```go
+func (a *IOHandler[I, O]) WithOutputWrappers(wrappers ...OutputWrapper[O]) *IOHandler[I, O]
+```
+
+WithOutputWrappers adds the given output wrappers to the IOHandler instance. This method is not thread\-safe.
+
+<a name="IOMiddleware"></a>
+## type [IOMiddleware](<https://github.com/autom8ter/async/blob/main/async.go#L59-L62>)
+
+IOMiddleware is a struct that contains an input wrapper and an output wrapper. It can be used to wrap the input and output of an IO function.
+
+```go
+type IOMiddleware[I any, O any] struct {
+    Input  func(Input[I]) Input[I]
+    Output func(*Output[O]) *Output[O]
+}
+```
+
+<a name="Input"></a>
+## type [Input](<https://github.com/autom8ter/async/blob/main/async.go#L15-L19>)
+
+Input is a struct that contains a context and a value.
+
+```go
+type Input[T any] struct {
+    Ctx   context.Context
+    ID    string
+    Value T
+}
+```
+
+<a name="InputWrapper"></a>
+## type [InputWrapper](<https://github.com/autom8ter/async/blob/main/async.go#L32>)
+
+InputWrapper is a function that takes an input and returns an input.
+
+```go
+type InputWrapper[I any] func(I) I
+```
+
 <a name="MultiContext"></a>
-## type [MultiContext](<https://github.com/autom8ter/async/blob/main/async.go#L98-L103>)
+## type [MultiContext](<https://github.com/autom8ter/async/blob/main/multicontext.go#L9-L14>)
 
 MultiContext is a context that can be used to combine contexts with a root context so they can be cancelled together.
 
@@ -400,7 +561,7 @@ type MultiContext struct {
 ```
 
 <a name="NewMultiContext"></a>
-### func [NewMultiContext](<https://github.com/autom8ter/async/blob/main/async.go#L106>)
+### func [NewMultiContext](<https://github.com/autom8ter/async/blob/main/multicontext.go#L17>)
 
 ```go
 func NewMultiContext(ctx context.Context) *MultiContext
@@ -409,7 +570,7 @@ func NewMultiContext(ctx context.Context) *MultiContext
 NewMultiContext returns a new MultiContext.
 
 <a name="MultiContext.Cancel"></a>
-### func \(\*MultiContext\) [Cancel](<https://github.com/autom8ter/async/blob/main/async.go#L141>)
+### func \(\*MultiContext\) [Cancel](<https://github.com/autom8ter/async/blob/main/multicontext.go#L52>)
 
 ```go
 func (m *MultiContext) Cancel()
@@ -418,7 +579,7 @@ func (m *MultiContext) Cancel()
 Cancel cancels all child contexts.
 
 <a name="MultiContext.WithCloser"></a>
-### func \(\*MultiContext\) [WithCloser](<https://github.com/autom8ter/async/blob/main/async.go#L126>)
+### func \(\*MultiContext\) [WithCloser](<https://github.com/autom8ter/async/blob/main/multicontext.go#L37>)
 
 ```go
 func (m *MultiContext) WithCloser(fn func())
@@ -427,12 +588,34 @@ func (m *MultiContext) WithCloser(fn func())
 WithCloser adds a function to be called when the multi context is cancelled.
 
 <a name="MultiContext.WithContext"></a>
-### func \(\*MultiContext\) [WithContext](<https://github.com/autom8ter/async/blob/main/async.go#L132>)
+### func \(\*MultiContext\) [WithContext](<https://github.com/autom8ter/async/blob/main/multicontext.go#L43>)
 
 ```go
 func (m *MultiContext) WithContext(ctx context.Context) context.Context
 ```
 
 WithContext returns a new context that is a child of the root context. This context will be cancelled when the multi context is cancelled.
+
+<a name="Output"></a>
+## type [Output](<https://github.com/autom8ter/async/blob/main/async.go#L22-L26>)
+
+Output is a struct that contains a context, a value, and an error.
+
+```go
+type Output[T any] struct {
+    Ctx   context.Context
+    Value T
+    Err   error
+}
+```
+
+<a name="OutputWrapper"></a>
+## type [OutputWrapper](<https://github.com/autom8ter/async/blob/main/async.go#L45>)
+
+OutputWrapper is a function that takes an output and returns an output.
+
+```go
+type OutputWrapper[O any] func(*Output[O]) *Output[O]
+```
 
 Generated by [gomarkdoc](<https://github.com/princjef/gomarkdoc>)
